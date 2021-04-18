@@ -20,7 +20,7 @@ CFLAGS != echo ${CFLAGS}; if [ ${test} -ne 1 ]; then echo " -fPIC -fvisibility=h
 
 # TARGETS value set according to ${test} value:
 LIB_TARGETS = ${TARGET}.a ${TARGET}.so
-TEST_TARGETS != ls -1 ${SRC}/*.c | grep ^${SRC}/test | sed -e 's/\.c//g'
+TEST_TARGETS != ls -1 ${SRC}/*.c | grep ^${SRC}/test | sed -e 's/\.c/.e/g'
 TARGETS != if [ ${test} -eq 1 ]; then echo ${TEST_TARGETS}; else echo ${LIB_TARGETS}; fi
 
 # default rule should come before _most_, if not all, includes:
