@@ -10,9 +10,11 @@ SRC = src
 # Initialize with default, non-test, value
 test ?= 0
 
-# Compiler flags
-CFLAGS = -Wall -Werror -std=c99 -pedantic -m64 -ggdb
+# Compiler flags (setting _POSIX_C_SOURCE=1 for stdio.h fileno() function.)
+CFLAGS = -Wall -Werror -std=c99 -pedantic -m64 -ggdb -D_POSIX_C_SOURCE=1
 LDFLAGS = 
+
+CFLAGS += -Wpadded
 
 # For a library, add -fPIC for relocatable function addresses, and possibly
 # -fvisibility=hidden to restrict access to explicitely-revealed functions
