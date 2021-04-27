@@ -1,4 +1,4 @@
-#include "recnodb_int.c"
+#include "recnodb_extra.c"
 
 int main(int argc, const char **argv)
 {
