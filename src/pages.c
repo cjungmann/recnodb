@@ -61,6 +61,7 @@ RND_ERROR rnd_add_block(RNDH *handle,
    bhead.block_type = type;
    bhead.block_size = bytes_to_add;
    bhead.next_block = 0;
+   bhead.next_block_size = bytes_to_add;
 
    bytes_xfer = fwrite(&bhead, sizeof(bhead), 1, handle->file);
 
