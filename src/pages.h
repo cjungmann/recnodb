@@ -1,7 +1,7 @@
 #ifndef RECNODB_PAGES_H
 #define RECNODB_PAGES_H
 
-#include "recnodb_extra.h"
+#include "extra.h"
 #include "recnodb.h"
 
 typedef unsigned int RND_BLOCK_OFFSET;

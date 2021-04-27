@@ -5,9 +5,9 @@
 #include <fcntl.h>     // for fileno()
 #include <sys/stat.h>  // for fstat()
 
-#include "recnodb_pages.c"
-#include "recnodb_extra.c"
-#include "recnodb_locks.c"
+#include "pages.c"
+#include "extra.c"
+#include "locks.c"
 #include "recnodb.c"
 
 void report_file_stats(RNDH *handle)

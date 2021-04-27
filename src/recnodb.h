@@ -38,8 +38,8 @@ typedef struct recnodb_handle {
    int         sys_errno;
 } RNDH;
 
-#include "recnodb_pages.h"
-#include "recnodb_locks.h"
+#include "pages.h"
+#include "locks.h"
 
 RND_ERROR rnd_init(RNDH *handle);
 RND_ERROR rnd_open(RNDH *handle, const char *path, int reclen, RND_FLAGS flags);

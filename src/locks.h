@@ -2,7 +2,7 @@
 #define RECNODB_LOCKS_H
 
 #include "recnodb.h"
-#include "recnodb_pages.h"
+#include "pages.h"
 
 typedef void (*lock_callback)(RNDH *handle, void *closure);
 

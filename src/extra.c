@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 
 /* #include "recnodb.h" */
-#include "recnodb_extra.h"
+#include "extra.h"
 
 /**
  * Prepare the handle for a new operation.

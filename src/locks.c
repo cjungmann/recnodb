@@ -1,4 +1,4 @@
-#include "recnodb_locks.h"
+#include "locks.h"
 
 #include <string.h>   // for memset()
 #include <fcntl.h>    // for fcntl()  (setting locks)
