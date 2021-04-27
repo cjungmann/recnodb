@@ -1,0 +1,5 @@
+librecnodb.a
+librecnodb.so
+src/*.o
+src/*.e
+*.db
