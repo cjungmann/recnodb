@@ -1,25 +1,34 @@
 #ifndef RECNO_INLINES_H
 #define RECNO_INLINES_H
 
-static inline uint16_t get_block_type(RND_BHEAD *bh)                  { return bh->block_type; }
-static inline void set_block_type(RND_BHEAD *bh, uint16_t block_type) { bh->block_type = block_type; }
+#define INLINE static inline
 
-static inline uint16_t get_head_size(RND_BHEAD *bh)                   { return bh->head_size; }
-static inline void set_head_size(RND_BHEAD *bh, uint16_t head_size)   { bh->head_size = head_size; }
+/* INLINE RND_BLOCK_TYPE get_block_type(const RND_BHEAD *bh)               { return bh->block_type; } */
+/* INLINE void set_block_type(RND_BHEAD *bh, RND_BLOCK_TYPE block_type)    { bh->block_type = block_type; } */
 
-static inline uint32_t get_block_size(RND_BHEAD *bh)                  { return bh->block_size; }
-static inline void set_block_size(RND_BHEAD *bh, uint32_t block_size) { bh->block_size = block_size; }
+/* INLINE void *get_block_data(RND_BHEAD *bh)      { return (void*)(((char*)bh) + bh->bytes_to_data); } */
 
-static inline off_t get_offset_next_block(RND_BHEAD *bh)              { return bh->next_block; }
-static inline void set_offset_next_block(RND_BHEAD *bh, off_t offset) { bh->next_block = offset; }
+/* INLINE RND_BLOCK_SIZE get_block_size(const RND_BHEAD *bh)               { return bh->block_size; } */
+/* INLINE void set_block_size(RND_BHEAD *bh, RND_BLOCK_SIZE block_size)    { bh->block_size = block_size; } */
 
-static inline uint32_t get_page_size(RND_FHEAD *fh)                   { return fh->page_size; }
-static inline void set_page_size(RND_FHEAD *fh, uint32_t page_size)   { fh->page_size = page_size; }
+/* INLINE RND_BLOCK_OFFSET get_offset_next_block(const RND_BHEAD *bh)      { return bh->next_block; } */
+/* INLINE void set_offset_next_block(RND_BHEAD *bh, RND_BLOCK_OFFSET offset) { bh->next_block = offset; } */
 
-static inline uint32_t get_rec_size(RND_THEAD *th)                    { return th->rec_size; }
-static inline void set_rec_size(RND_THEAD *th, uint32_t rec_size)     { th->rec_size = rec_size; }
+/* INLINE RND_PAGE_SIZE get_page_size(const RND_FHEAD *fh)                 { return fh->page_size; } */
+/* INLINE void set_page_size(RND_FHEAD *fh, RND_PAGE_SIZE page_size)       { fh->page_size = page_size; } */
 
-static inline uint32_t get_last_recno(RND_THEAD *th)                  { return th->last_recno; }
-static inline void set_last_recno(RND_THEAD *th, uint32_t last_recno) { th->last_recno = last_recno; }
+/* INLINE RND_REC_SIZE get_rec_size(const RND_THEAD *th)                   { return th->rec_size; } */
+/* INLINE void set_rec_size(RND_THEAD *th, RND_REC_SIZE rec_size)          { th->rec_size = rec_size; } */
+
+INLINE uint32_t thead_last_recno(const RND_THEAD *th)          { return th->tinfo.last_recno; }
+INLINE void set_last_recno(RND_THEAD *th, uint32_t last_recno) { th->tinfo.last_recno = last_recno; }
+
+
+
+
+INLINE uint32_t fhead_chunk_size(const RND_FHEAD *fhead) { return fhead->finfo.chunk_size; }
+INLINE uint32_t handle_chunk_size(const RNDH *handle)    { return fhead_chunk_size(handle->fhead); }
+
+
 
 #endif

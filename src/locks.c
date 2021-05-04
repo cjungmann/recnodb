@@ -6,7 +6,19 @@
 #include <errno.h>
 
 /**
- * Refer to `man 3 fcntl` and `man 3 fileno`
+ * Places a lock on an area of the file, optionally providing contents of the area.
+ *
+ * - The lock are is specified in the *bhandle* parameter.
+ * - The *retrieve_data* flag requests the contents of the lock area
+ *   be included in the argument of the callback function.
+ * - The *callback* parameter is a pointer to a function that will be
+ *   called when the lock is placed.  If the *retrieve_data* flag is set,
+ *   and if *callback* returns non-zero, the buffer will be written back
+ *   to the file.
+ * - *closure* is an optional pointer variable the will be passed through
+ *   to the *callback* function.
+ *
+ * To complete this function, I referred to `man 3 fcntl` and `man 3 fileno`
  */
 RND_ERROR rnd_lock_area(RNDH *handle,
                         RND_BHANDLE *bhandle,

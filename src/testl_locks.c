@@ -8,7 +8,7 @@
 
 typedef void (*file_user)(RNDH *handle, void *closure);
 
-void open_fake_file(const char *name, int file_length, file_user user, void *closure)
+void open_lock_file(const char *name, int file_length, file_user user, void *closure)
 {
    const char *open_mode = file_length ? "w+" : "r+";
    printf("About to open %s in %s mode.\n", name, open_mode);
@@ -46,6 +46,8 @@ bool test_writing_block_lock_user(RNDH *handle, RND_BHANDLE *bhandle, void *lock
 {
    printf("writing to the buffer.\n");
    memcpy(locked_buffer, "0123456789", 10);
+
+   // Return 1 (!=0), notification to rn_lock_area() to write-back the buffer
    return 1;
 }
 
@@ -70,6 +72,8 @@ bool test_nonwriting_block_lock_user(RNDH *handle, RND_BHANDLE *bhandle, void *l
       printf("%2x ", *ptr);
       ++ptr;
    }
+
+   // Return 0 to abstain from writing
    return 0;
 }
 
@@ -86,7 +90,7 @@ void test_block_lock_nonwriting(RNDH *handle, void *closure)
 
 int main(int argc, const char **argv)
 {
-   open_fake_file("lock_test.dat", 4096, test_block_lock_writing, NULL);
-   open_fake_file("lock_test.dat", 0, test_block_lock_nonwriting, NULL);
+   open_lock_file("lock_test.dat", 4096, test_block_lock_writing, NULL);
+   open_lock_file("lock_test.dat", 0, test_block_lock_nonwriting, NULL);
    return 0;
 }

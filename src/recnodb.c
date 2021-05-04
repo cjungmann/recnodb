@@ -17,7 +17,8 @@ EXPORT RND_ERROR rnd_init(RNDH *handle)
 /*
  * Open a file, creating it if specified in the flags.
  */
-EXPORT RND_ERROR rnd_open(RNDH *handle, const char *path, int reclen, RND_FLAGS flags)
+EXPORT
+RND_ERROR rnd_open_raw(RNDH *handle, const char *path, int reclen, RND_FLAGS flags)
 {
    RND_ERROR rval = RND_FAIL;
 
@@ -27,7 +28,14 @@ EXPORT RND_ERROR rnd_open(RNDH *handle, const char *path, int reclen, RND_FLAGS 
       goto abandon_function;
    }
 
-   FILE *f = fopen(path, "r+b");
+   if (handle->fhead == NULL)
+   {
+      rval = RND_MISSING_FHEAD;
+      goto abandon_function;
+   }
+
+   const char *open_mode = ((flags & RND_CREATE)!=0 ? "w+b" : "r+b");
+   FILE *f = fopen(path, open_mode);
 
    if (!f)
    {
@@ -36,13 +44,13 @@ EXPORT RND_ERROR rnd_open(RNDH *handle, const char *path, int reclen, RND_FLAGS 
       goto abandon_function;
    }
 
+   /* if (rval == RND_SUCCESS) */
+      handle->file = f;
+
    if (flags & RND_CREATE)
       rval = rnd_prepare_new_file(handle, get_blocksize(), reclen);
    else
       rval = rnd_prepare_handle_from_file(handle);
-
-   if (rval == RND_SUCCESS)
-      handle->file = f;
 
   abandon_function:
    return rval;
@@ -51,7 +59,7 @@ EXPORT RND_ERROR rnd_open(RNDH *handle, const char *path, int reclen, RND_FLAGS 
 /*
  * Close and clean up the contents of a RNDH handle.
  */
-EXPORT RND_ERROR rnd_close(RNDH *handle)
+EXPORT RND_ERROR rnd_close_raw(RNDH *handle)
 {
    if (handle->file)
    {
@@ -63,6 +71,29 @@ EXPORT RND_ERROR rnd_close(RNDH *handle)
       return RND_FILE_NOT_OPEN;
 
 }
+
+EXPORT
+RND_ERROR rnd_open(const char *path, int reclen, RND_FLAGS flags, rnd_user user)
+{
+   RNDH handle;
+
+   rnd_init(&handle);
+   
+   RND_ERROR result;
+   RND_FHEAD fhead;
+   memset(&fhead, 0, sizeof(fhead));
+
+   if (!(result = rnd_open_raw(&handle, path, reclen, flags)))
+   {
+      (*user)(&handle);
+
+      rnd_close_raw(&handle);
+   }
+
+   return result;
+}
+
+
 
 /*
  * Write some data to the database.
