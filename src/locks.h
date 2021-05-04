@@ -4,13 +4,20 @@
 #include "recnodb.h"
 #include "pages.h"
 
-typedef void (*lock_callback)(RNDH *handle, void *closure);
+// Return TRUE (!=0) to write back contents of locked_buffer.
+typedef bool (*lock_callback)(RNDH *handle,
+                              RND_BHANDLE *bhandle,
+                              void *locked_buffer,
+                              void *closure);
 
 RND_ERROR rnd_lock_area(RNDH *handle,
-                        RND_BLOCK_OFFSET offset,
-                        RND_BLOCK_LENGTH length,
+                        RND_BHANDLE *bhandle,
+                        bool retrieve_data,
                         lock_callback callback,
                         void *closure);
+
+
+
 
 RND_ERROR rnd_lock_add_block(int tries);
 void rnd_unlock_add_block(void);

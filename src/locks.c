@@ -9,8 +9,8 @@
  * Refer to `man 3 fcntl` and `man 3 fileno`
  */
 RND_ERROR rnd_lock_area(RNDH *handle,
-                        RND_BLOCK_OFFSET offset,
-                        RND_BLOCK_LENGTH length,
+                        RND_BHANDLE *bhandle,
+                        bool retrieve_data,
                         lock_callback callback,
                         void *closure)
 {
@@ -21,10 +21,10 @@ RND_ERROR rnd_lock_area(RNDH *handle,
    int fd = fileno(handle->file);
    struct flock fl;
    memset(&fl, 0, sizeof(fl));
-   fl.l_type = F_SETLK;
+   fl.l_type = F_WRLCK;
    fl.l_whence = SEEK_SET;
-   fl.l_start = offset;
-   fl.l_len = length;
+   fl.l_start = bhandle->offset;
+   fl.l_len = bhandle->size;
    fl.l_pid = getpid();
 
    if (fcntl(fd, F_SETLK, &fl) == -1)
@@ -40,8 +40,44 @@ RND_ERROR rnd_lock_area(RNDH *handle,
       goto abandon_function;
    }
 
-   // Let calling function use the lock:
-   (*callback)(handle, closure);
+   if (retrieve_data)
+   {
+      char buffer[bhandle->size];
+      off_t saved_offset = ftell(handle->file);
+      if (fseek(handle->file, bhandle->offset, SEEK_SET))
+      {
+         rval = RND_SYSTEM_ERROR;
+         handle->sys_errno = errno;
+         goto abandon_lock;
+      }
+
+      if (!fread(buffer, sizeof(buffer), 1, handle->file))
+      {
+         rval = RND_LOCK_READ_FAILED;
+         goto restore_file_position;
+      }
+
+      // Had back to calling function, writing changed
+      // buffer if callback returns TRUE:
+      if ((*callback)(handle, bhandle, buffer, closure))
+      {
+         if (fseek(handle->file, bhandle->offset, SEEK_SET)
+             || !fwrite(buffer, sizeof(buffer), 1, handle->file))
+         {
+            rval = RND_UNLOCK_WRITE_FAILED;
+            goto restore_file_position;
+         }
+      }
+
+      rval = RND_SUCCESS;
+
+     restore_file_position:
+      fseek(handle->file, saved_offset, SEEK_SET);
+   }
+   else
+      (*callback)(handle, bhandle, NULL, closure);
+
+  abandon_lock:
 
    fl.l_type = F_UNLCK;
    if (fcntl(fd, F_SETLK, &fl) == -1)
