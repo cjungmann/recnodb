@@ -24,10 +24,15 @@ CFLAGS != echo ${CFLAGS}; if [ ${test} -ne 1 ]; then echo " -fPIC -fvisibility=h
 
 # TARGETS value set according to ${test} value:
 LIB_TARGETS = ${TARGET}.a ${TARGET}.so
-TEST_M_TARGETS != ls -1 ${SRC}/*.c | grep ^${SRC}/testm_ | sed -e 's/\.c/.e/g'
+TEST_M_TARGETS != ls -1 ${SRC}/*.c | grep ^${SRC}/test_ | sed -e 's/\.c/.e/g'
 TEST_L_TARGETS != ls -1 ${SRC}/*.c | grep ^${SRC}/testl_ | sed -e 's/\.c/.l/g'
-TARGETS != if [ ${test} -eq 1 ]; then echo ${TEST_L_TARGETS} ${TEST_M_TARGETS}; \
-    else echo ${LIB_TARGETS}; fi
+TARGETS != \
+	if   [ ${test} -eq 0 ]; then echo ${LIB_TARGETS}; \
+	elif [ ${test} -eq 1 ]; then echo ${TEST_M_TARGETS}; \
+	elif [ ${test} -eq 2 ]; then echo ${TEST_L_TARGETS}; fi
+
+# TARGETS != if [ ${test} -eq 1 ]; then echo ${TEST_L_TARGETS} ${TEST_M_TARGETS}; \
+#     else echo ${LIB_TARGETS}; fi
 
 # For our purposes, any changed header file triggers rules
 HEADERS != ls -1 ${SRC}/*.h
@@ -62,7 +67,7 @@ ${TARGET}.so : ${MODULES}
 	@echo Suffix match build .e from .c file to build test executable
 	${CC} ${CFLAGS} -o $@ $<
 
-.c.l:
+.c.l: ${TARGET}.a
 	@echo Suffix match build .l from .c file to compile with library
 	@echo "Building library test file"
 	${CC} ${CFLAGS} -o $@ $< librecnodb.a
