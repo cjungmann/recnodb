@@ -1,6 +1,5 @@
 #include "recnodb.h"
 #include "extra.h"
-#include "pages.h"
 
 #include <string.h>
 #include <errno.h>
