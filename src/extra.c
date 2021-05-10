@@ -28,6 +28,7 @@ const char *rnd_error_strings[] = {
    "No error",
    "Generic Failure",
    "System Error",
+   "Bad Parameter",
    "Missing FHEAD Parameter",
    "Attempted to Open Already Opened Database",
    "File Not Open",
@@ -38,7 +39,9 @@ const char *rnd_error_strings[] = {
    "Lock Read Failed",
    "Unlock Write Failed",
    "Incomplete Read",
-   "Incomplete Write"
+   "Incomplete Write",
+   "Invalid Block Size",
+   "Invalid Block Location"
 };
 
 const char *rnd_strerror(RND_ERROR err, RNDH *handle)

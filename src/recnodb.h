@@ -20,6 +20,7 @@ typedef enum {
    RND_SUCCESS = 0,
    RND_FAIL,
    RND_SYSTEM_ERROR,
+   RND_BAD_PARAMETER,
    RND_MISSING_FHEAD,
    RND_FILE_ALREADY_OPEN,
    RND_FILE_NOT_OPEN,
@@ -31,6 +32,8 @@ typedef enum {
    RND_UNLOCK_WRITE_FAILED,
    RND_INCOMPLETE_READ,
    RND_INCOMPLETE_WRITE,
+   RND_INVALID_BLOCK_SIZE,
+   RND_INVALID_BLOCK_LOCATION,
    RND_ERROR_LIMIT
 } RND_ERROR;
 
@@ -45,19 +48,20 @@ typedef struct recnodb_data {
    char         pad[4];
 } RND_DATA;
 
-struct rnd_file_head;
+// Forward declaration of recnodb_handle member defined in blocks.h
+struct rnd_head_file;
 
 struct recnodb_handle {
-   FILE        *file;
-   int         sys_errno;
-   
-   struct rnd_file_head   *fhead;
+   FILE                  *file;
+   int                   sys_errno;
+   struct rnd_head_file  *fhead;
 };
 
-#include "pages.h"
-#include "locks.h"
-
 typedef void (*rnd_user)(RNDH *handle);
+
+
+#include "blocks.h"
+#include "locks.h"
 
 RND_ERROR rnd_open(const char *path, int reclen, RND_FLAGS flags, rnd_user user);
 
