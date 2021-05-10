@@ -1,4 +1,5 @@
-#include "locks.h"
+#include "recnodb.h"
+#include "extra.h"
 
 #include <string.h>   // for memset()
 #include <fcntl.h>    // for fcntl()  (setting locks)
@@ -21,7 +22,7 @@
  * To complete this function, I referred to `man 3 fcntl` and `man 3 fileno`
  */
 RND_ERROR rnd_lock_area(RNDH *handle,
-                        RND_BHANDLE *bhandle,
+                        BLOCK_LOC *bhandle,
                         bool retrieve_data,
                         lock_callback callback,
                         void *closure)
