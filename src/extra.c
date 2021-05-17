@@ -7,7 +7,9 @@
 #include "extra.h"
 
 /**
- * Prepare the handle for a new operation.
+ * Clears *handle::sys_errno* to prepare the handle for a new operation.
+ *
+ * @param handle   handle to an open recnodb file.
  */
 void prime_handle(RNDH *handle)
 {
@@ -44,6 +46,18 @@ const char *rnd_error_strings[] = {
    "Invalid Block Location"
 };
 
+/**
+ * Returns a const char* to an error string from the appropriate source.
+ *
+ * Except for RND_SYSTEM_ERROR, which returns the string from system function
+ * `strerror`, returns a string corresponding to the error value, to be used
+ * in more user-friendly error messages.
+ *
+ * @param err    library error code
+ * @param handle handle in use during the error, which may have sys_errno set.
+ *
+ * @return       const char * to a string describing the error.
+ */
 const char *rnd_strerror(RND_ERROR err, RNDH *handle)
 {
    if (err == RND_SYSTEM_ERROR)

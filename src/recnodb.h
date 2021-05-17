@@ -53,11 +53,12 @@ struct rnd_head_file;
 
 struct recnodb_handle {
    FILE                  *file;
-   int                   sys_errno;
    struct rnd_head_file  *fhead;
+   int                   sys_errno;  // 32-bit integer
+   uint32_t              padding;    // 32-bit padding for alignment
 };
 
-typedef void (*rnd_user)(RNDH *handle);
+typedef void (*rnd_user)(RNDH *handle, void *closure);
 
 
 #include "blocks.h"

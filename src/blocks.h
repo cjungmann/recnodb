@@ -60,17 +60,22 @@ typedef struct rnd_head_file {
  * Block creation structs
  ***********************/
 typedef struct rnd_new_block_definition {
-   BLOCK_LOC *new_block;      //!< [out] where new block can be found
-   unsigned  block_type;      //!< BTYPE enum value
+   BTYPE     block_type;      //!< BTYPE enum value
    unsigned  block_size;      //!< Number of bytes in new block
    uint32_t  rec_size;        //!< Number of bytes in fixed-length records
                               //!< (RBT_TABLE and RBT_FILE)
    uint32_t  chunk_size;      //!< Minimum allocation multiplier (RBT_FILE only)
+   BLOCK_LOC new_block;       //!< [out] where new block can be found
 } RND_BLOCK_DEF;
+
+uint16_t blocks_bytes_to_data(uint16_t block_type);
+RND_ERROR blocks_read_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int block_len);
+RND_ERROR blocks_write_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int block_len);
+
 
 void blocks_set_info_block(INFO_BLOCK *ib,
                            uint32_t block_head_size,
-                           unsigned block_type,
+                           BTYPE    block_type,
                            unsigned block_size,
                            uint32_t rec_size,
                            uint32_t chunk_size);
@@ -81,13 +86,25 @@ void blocks_prep_head_file(RND_HEAD_FILE *hf,
                            uint32_t rec_size);
 
 RND_ERROR blocks_file_open(const char *path,
+                           RND_FLAGS flags,
                            uint32_t chunk_size,  // Ignored if not flags |= RND_CREATE
                            uint32_t rec_size,    // Ignored if not flags |= RND_CREATE
-                           RND_FLAGS flags,
-                           rnd_user user);
+                           RNDH *handle,
+                           RND_HEAD_FILE *head_file);
+
+void blocks_file_close(RNDH *handle);
+
+RND_ERROR blocks_file_use(const char *path,
+                          RND_FLAGS flags,
+                          uint32_t chunk_size,
+                          uint32_t rec_size,
+                          rnd_user user,
+                          void *closure);
 
 RND_ERROR blocks_extend_file(RNDH *handle, size_t bytes_to_add);
 RND_ERROR blocks_append_block(RNDH *handle, RND_BLOCK_DEF *bdef);
+
+RND_ERROR blocks_extend_chain(RNDH *handle, off_t parent, RND_BLOCK_DEF *bref);
 
 
 #endif

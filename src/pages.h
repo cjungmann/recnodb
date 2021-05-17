@@ -86,21 +86,31 @@ typedef struct rnd_file_head  RND_FHEAD;
 typedef struct rnd_table_head RND_TABLE_EXTRA;
 typedef struct rnd_file_extra RND_FILE_EXTRA;
 
+typedef struct rnd_get_block_request {
+   RND_BHANDLE *new_block;
+   BLOCK_TYPE  type;
+   int         chunks_needed;
+   RND_DATA    *extra_header;
+} RND_NEW_BLOCK_REQ;
+
 typedef struct rnd_append_block_closure {
    RND_BHANDLE *new_block;
-   int pages_needed;
-   BLOCK_TYPE type;
-   RND_DATA *extra_header;
+   BLOCK_TYPE  type;
+   int         chunks_needed;
+   RND_DATA    *extra_header;
    RND_BHANDLE *chain_end;
-   RND_ERROR result;
+   RND_ERROR   result;
 } RND_BLOCK_REQ;
+
+static inline RND_BHANDLE* get_bhandle_from_BHEAD(struct rnd_block_info *bi)
+{ return (RND_BHANDLE*)bi->next_block; }
 
 
 #include "inlines.h"
 
 RND_ERROR rnd_add_block(RNDH *handle,
                         RND_BHANDLE *new_block,
-                        int pages_needed,
+                        int chunks_needed,
                         BLOCK_TYPE type,
                         RND_DATA *extra_header,
                         RND_BHANDLE *link);

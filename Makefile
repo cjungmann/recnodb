@@ -16,7 +16,7 @@ test ?= 0
 CFLAGS = -Wall -Werror -std=c99 -pedantic -m64 -ggdb -D_POSIX_C_SOURCE=1
 LDFLAGS = 
 
-# CFLAGS += -Wpadded
+CFLAGS += -Wpadded
 
 # For a library, add -fPIC for relocatable function addresses, and possibly
 # -fvisibility=hidden to restrict access to explicitely-revealed functions

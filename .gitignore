@@ -1,5 +1,7 @@
 librecnodb.a
 librecnodb.so
+html
+latex
 src/*.o
 src/*.e
 src/*.l
