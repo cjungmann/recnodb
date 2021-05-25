@@ -30,6 +30,7 @@ const char *rnd_error_strings[] = {
    "No error",
    "Generic Failure",
    "System Error",
+   "Invalid RecNoDB file",
    "Bad Parameter",
    "Missing FHEAD Parameter",
    "Attempted to Open Already Opened Database",
@@ -43,7 +44,8 @@ const char *rnd_error_strings[] = {
    "Incomplete Read",
    "Incomplete Write",
    "Invalid Block Size",
-   "Invalid Block Location"
+   "Invalid Block Location",
+   "Invalid File Head"
 };
 
 /**

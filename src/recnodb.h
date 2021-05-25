@@ -1,3 +1,5 @@
+/** @file */
+
 #ifndef RECNODB_H
 #define RECNODB_H
 
@@ -7,19 +9,11 @@
 
 #define EXPORT __attribute__((visibility("default")))
 
-typedef uint32_t RND_REC_SIZE;
-typedef uint32_t RND_RECNO;
-typedef int boolean, bool;
-
-/* typedef uint64_t RND_REC_SIZE; */
-/* typedef uint64_t RND_RECNO; */
-
-typedef struct recnodb_handle RNDH;
-
 typedef enum {
    RND_SUCCESS = 0,
    RND_FAIL,
    RND_SYSTEM_ERROR,
+   RND_INVALID_RECNODB_FILE,
    RND_BAD_PARAMETER,
    RND_MISSING_FHEAD,
    RND_FILE_ALREADY_OPEN,
@@ -34,6 +28,7 @@ typedef enum {
    RND_INCOMPLETE_WRITE,
    RND_INVALID_BLOCK_SIZE,
    RND_INVALID_BLOCK_LOCATION,
+   RND_INVALID_HEAD_FILE,
    RND_ERROR_LIMIT
 } RND_ERROR;
 
@@ -42,10 +37,19 @@ typedef enum {
    RND_READONLY = 2
 } RND_FLAGS;
 
+typedef struct recnodb_handle RNDH;
+typedef void (*rnd_user)(RNDH *handle, void *closure);
+
+#include "blocks.h"
+
+typedef uint32_t RND_REC_SIZE;
+typedef uint32_t RND_RECNO;
+typedef int boolean, bool;
+
 typedef struct recnodb_data {
-   void         *data;
-   RND_REC_SIZE size;
-   char         pad[4];
+   void          *data;
+   RND_REC_SIZE  size;
+   char          pad[4];
 } RND_DATA;
 
 // Forward declaration of recnodb_handle member defined in blocks.h
@@ -53,18 +57,14 @@ struct rnd_head_file;
 
 struct recnodb_handle {
    FILE                  *file;
-   struct rnd_head_file  *fhead;
+   // struct rnd_head_file  *fhead;
    int                   sys_errno;  // 32-bit integer
    uint32_t              padding;    // 32-bit padding for alignment
+   RND_HEAD_FILE         head_file;
 };
 
-typedef void (*rnd_user)(RNDH *handle, void *closure);
 
-
-#include "blocks.h"
-#include "locks.h"
-
-RND_ERROR rnd_open(const char *path, int reclen, RND_FLAGS flags, rnd_user user);
+RND_ERROR rnd_open(const char *path, int reclen, RND_FLAGS flags, rnd_user user, void *closure);
 
 RND_ERROR rnd_init(RNDH *handle);
 RND_ERROR rnd_open_raw(RNDH *handle, const char *path, int reclen, RND_FLAGS flags);
