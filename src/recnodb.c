@@ -19,40 +19,42 @@ EXPORT RND_ERROR rnd_init(RNDH *handle)
 EXPORT
 RND_ERROR rnd_open_raw(RNDH *handle, const char *path, int reclen, RND_FLAGS flags)
 {
-   RND_ERROR rval = RND_FAIL;
+   return blocks_file_open(path, flags, 4096, reclen, handle);
 
-   if (handle->file != NULL)
-   {
-      rval = RND_FILE_ALREADY_OPEN;
-      goto abandon_function;
-   }
+  //  RND_ERROR rval = RND_FAIL;
 
-   if (handle->fhead == NULL)
-   {
-      rval = RND_MISSING_FHEAD;
-      goto abandon_function;
-   }
+  //  if (handle->file != NULL)
+  //  {
+  //     rval = RND_FILE_ALREADY_OPEN;
+  //     goto abandon_function;
+  //  }
 
-   const char *open_mode = ((flags & RND_CREATE)!=0 ? "w+b" : "r+b");
-   FILE *f = fopen(path, open_mode);
+  //  if (handle->fhead == NULL)
+  //  {
+  //     rval = RND_MISSING_FHEAD;
+  //     goto abandon_function;
+  //  }
 
-   if (!f)
-   {
-      handle->sys_errno = errno;
-      rval = RND_SYSTEM_ERROR;
-      goto abandon_function;
-   }
+  //  const char *open_mode = ((flags & RND_CREATE)!=0 ? "w+b" : "r+b");
+  //  FILE *f = fopen(path, open_mode);
 
-   /* if (rval == RND_SUCCESS) */
-      handle->file = f;
+  //  if (!f)
+  //  {
+  //     handle->sys_errno = errno;
+  //     rval = RND_SYSTEM_ERROR;
+  //     goto abandon_function;
+  //  }
 
-   if (flags & RND_CREATE)
-      rval = rnd_prepare_new_file(handle, get_blocksize(), reclen);
-   else
-      rval = rnd_prepare_handle_from_file(handle);
+  //  /* if (rval == RND_SUCCESS) */
+  //     handle->file = f;
 
-  abandon_function:
-   return rval;
+  //  if (flags & RND_CREATE)
+  //     rval = rnd_prepare_new_file(handle, get_blocksize(), reclen);
+  //  else
+  //     rval = rnd_prepare_handle_from_file(handle);
+
+  // abandon_function:
+  //  return rval;
 }
 
 /*
@@ -72,21 +74,19 @@ EXPORT RND_ERROR rnd_close_raw(RNDH *handle)
 }
 
 EXPORT
-RND_ERROR rnd_open(const char *path, int reclen, RND_FLAGS flags, rnd_user user)
+RND_ERROR rnd_open(const char *path, int reclen, RND_FLAGS flags, rnd_user user, void *closure)
 {
    RNDH handle;
 
    rnd_init(&handle);
    
    RND_ERROR result;
-   RND_FHEAD fhead;
-   memset(&fhead, 0, sizeof(fhead));
 
-   if (!(result = rnd_open_raw(&handle, path, reclen, flags)))
+   if (!(result = blocks_file_open(path, flags, get_blocksize(), reclen, &handle)))
    {
-      (*user)(&handle);
+      (*user)(&handle, closure);
 
-      rnd_close_raw(&handle);
+      blocks_file_close(&handle);
    }
 
    return result;
@@ -117,4 +117,5 @@ EXPORT RND_ERROR rnd_delete(RNDH *handle, RND_RECNO recno)
 {
    return RND_SUCCESS;
 }
+
 
