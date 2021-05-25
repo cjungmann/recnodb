@@ -1,6 +1,7 @@
-#include "locks.h"
-#include "pages.h"
 #include "recnodb.h"
+#include "locks.h"
+#include "blocks.h"
+#include "extra.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -28,7 +29,8 @@ void open_lock_file(const char *name, int file_length, file_user user, void *clo
          fflush(f);
       }
 
-      RNDH handle = { f, 0, NULL };
+      RNDH handle;
+      rnd_init(&handle);
 
       (*user)(&handle, closure);
 
@@ -42,7 +44,7 @@ void open_lock_file(const char *name, int file_length, file_user user, void *clo
 }
 
 /* Writing lock test, next two funtions */
-bool test_writing_block_lock_user(RNDH *handle, RND_BHANDLE *bhandle, void *locked_buffer, void *closure)
+bool test_writing_block_lock_user(RNDH *handle, BLOCK_LOC *bhandle, void *locked_buffer, void *closure)
 {
    printf("writing to the buffer.\n");
    memcpy(locked_buffer, "0123456789", 10);
@@ -53,7 +55,7 @@ bool test_writing_block_lock_user(RNDH *handle, RND_BHANDLE *bhandle, void *lock
 
 void test_block_lock_writing(RNDH *handle, void *closure)
 {
-   RND_BHANDLE bhandle = {16, 10};
+   BLOCK_LOC bhandle = {16, 10};
    RND_ERROR err;
    err = rnd_lock_area(handle, &bhandle, 1, test_writing_block_lock_user, closure);
    if (err)
@@ -61,7 +63,7 @@ void test_block_lock_writing(RNDH *handle, void *closure)
 }
 
 /* Non-writing lock test, next two functions */
-bool test_nonwriting_block_lock_user(RNDH *handle, RND_BHANDLE *bhandle, void *locked_buffer, void *closure)
+bool test_nonwriting_block_lock_user(RNDH *handle, BLOCK_LOC *bhandle, void *locked_buffer, void *closure)
 {
    printf("reading from the buffer.\n");
    char *ptr = (char*)locked_buffer;
@@ -79,7 +81,7 @@ bool test_nonwriting_block_lock_user(RNDH *handle, RND_BHANDLE *bhandle, void *l
 
 void test_block_lock_nonwriting(RNDH *handle, void *closure)
 {
-   RND_BHANDLE bhandle = {16, 10};
+   BLOCK_LOC bhandle = {16, 10};
    RND_ERROR err;
    err = rnd_lock_area(handle, &bhandle, 1, test_nonwriting_block_lock_user, closure);
    if (err)

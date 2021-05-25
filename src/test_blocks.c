@@ -12,6 +12,27 @@
 #include "chains.c"
 #include "extra.c"
 
+#define MODE_NEW_OR_TRUNCATE "w+b"
+#define MODE_OPEN_EXISTING "r+b"
+
+/**
+ * Set RND_HEAD_FILE members to valid state for testing situations.
+ */
+void make_bogus_head_file(RND_HEAD_FILE *head_file, int blocksize)
+{
+   // INFO_FILE information
+   head_file->fhead.chunk_size = get_blocksize();
+   memcpy(head_file->fhead.magic, "RNDB", 4);
+
+   // INFO_BLOCK confirmation
+   head_file->bhead.block_type = RBT_FILE;
+   head_file->bhead.bytes_to_data = sizeof(RND_HEAD_FILE);
+   head_file->bhead.block_size = blocksize;
+}
+
+/**
+ * Use system `stat` function to get file size.
+ */
 off_t get_file_size(const char *filename)
 {
    off_t rval = 0;
@@ -27,11 +48,16 @@ off_t get_file_size(const char *filename)
 
 bool test_basic_block(const char *filename, int blocksize)
 {
-   FILE *f = fopen(filename, "w+b");
+   // Create nonexistent file or open and truncate existing file:
+   FILE *f = fopen(filename, MODE_NEW_OR_TRUNCATE);
    if (f)
    {
       RND_ERROR err;
+
       RNDH handle = {f};
+      // Make sure handle is valid to pass assertions:
+      make_bogus_head_file(&handle.head_file, blocksize);
+      
       if ((err = blocks_extend_file(&handle, blocksize)))
       {
          fprintf(stderr, "blocks_extend_file failed (%s)\n", rnd_strerror(err, &handle));
@@ -54,13 +80,17 @@ bool test_basic_block(const char *filename, int blocksize)
 bool test_generic_block(const char *filename)
 {
    bool rval = 0;
-   FILE *f = fopen(filename, "w+b");
+   FILE *f = fopen(filename, MODE_NEW_OR_TRUNCATE);
    if (f)
    {
       RND_ERROR err;
+      int blocksize = 4096;
 
       RNDH handle = {f};
-      RND_BLOCK_DEF rbd = { RBT_GENERIC, 4096 };
+      // Make sure handle is valid to pass assertions:
+      make_bogus_head_file(&handle.head_file, blocksize);
+
+      RND_BLOCK_DEF rbd = { RBT_GENERIC, blocksize };
 
       err = blocks_append_block(&handle, &rbd);
       if (err)
@@ -81,13 +111,17 @@ bool test_generic_block(const char *filename)
 bool test_newfile_block(const char *filename)
 {
    bool rval = 0;
-   FILE *f = fopen(filename, "w+b");
+   FILE *f = fopen(filename, MODE_NEW_OR_TRUNCATE);
    if (f)
    {
       RND_ERROR err;
+      int blocksize = 4096;
 
       RNDH handle = {f};
-      RND_BLOCK_DEF rbd = { RBT_FILE, 4096, 0, 4096 };
+      // Make sure handle is valid to pass assertions:
+      make_bogus_head_file(&handle.head_file, blocksize);
+
+      RND_BLOCK_DEF rbd = { RBT_FILE, blocksize, 0, blocksize };
 
       err = blocks_append_block(&handle, &rbd);
       if (err)
@@ -108,15 +142,14 @@ bool test_newfile_block(const char *filename)
 bool test_blocks_file_open(const char *filename)
 {
    RNDH handle;
-   RND_HEAD_FILE ifile;
 
-   RND_ERROR err = blocks_file_open(filename, 0, 0, 0, &handle, &ifile);
+   RND_ERROR err = blocks_file_open(filename, 0, 0, 0, &handle);
    if (err)
    {
-         fprintf(stderr,
-                 "test_blocks_file_open() error with blocks_file_open (%s)\n",
-                 rnd_strerror(err, NULL));
-         return 0;
+      fprintf(stderr,
+              "test_blocks_file_open() error with blocks_file_open (%s)\n",
+              rnd_strerror(err, NULL));
+      return 0;
    }
    else
    {
