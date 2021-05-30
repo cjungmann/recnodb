@@ -3,6 +3,12 @@
 
 #include "recnodb.h"
 
+RND_ERROR flatrecs_make_offset_to_recno(RNDH            *handle,
+                                        const BLOCK_LOC *bloc,
+                                        RND_HEAD_TABLE  *htable,
+                                        uint32_t        recno,
+                                        off_t           *offset_to_record);
+
 /**
  * Function type called by `flatrecs_get_next_offset`
  *
@@ -24,7 +30,5 @@ RND_ERROR flatrecs_get_next_offset(RNDH *handle,
                                    off_t table_head,
                                    flatrecs_use_new_record user,
                                    void *closure);
-
-
 
 #endif
