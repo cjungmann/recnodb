@@ -15,6 +15,22 @@
 #define MODE_NEW_OR_TRUNCATE "w+b"
 #define MODE_OPEN_EXISTING "r+b"
 
+#pragma pack(push)
+#pragma pack(1)
+typedef struct local_date {
+   int year;
+   short month;
+   short day;
+} Date;
+
+typedef struct person_record {
+   char  first_name[20];
+   char  middle_initial;
+   char  last_name[20];
+   Date  birthday;
+} Person;
+#pragma pack(pop)
+
 /**
  * Set RND_HEAD_FILE members to valid state for testing situations.
  */
@@ -52,6 +68,8 @@ bool test_basic_block(const char *filename, int blocksize)
    FILE *f = fopen(filename, MODE_NEW_OR_TRUNCATE);
    if (f)
    {
+      printf("`test_basic_block` opened %s.\n", filename);
+
       RND_ERROR err;
 
       RNDH handle = {f};
@@ -83,6 +101,8 @@ bool test_generic_block(const char *filename)
    FILE *f = fopen(filename, MODE_NEW_OR_TRUNCATE);
    if (f)
    {
+      printf("`test_generic_block` opened %s.\n", filename);
+
       RND_ERROR err;
       int blocksize = 4096;
 
@@ -104,16 +124,26 @@ bool test_generic_block(const char *filename)
       
       fclose(f);
    }
+   else
+      fprintf(stderr, "`test_generic_block` failed to opened %s (%s).\n", filename, strerror(errno));
 
    return rval;
 }
 
+/**
+ * Creates a new, fully-operational recnodb file.
+ *
+ * @param filename   path of file to be created
+ * @return 0 (FALSE) on failure, 1 (TRUE) on success.
+ */
 bool test_newfile_block(const char *filename)
 {
    bool rval = 0;
    FILE *f = fopen(filename, MODE_NEW_OR_TRUNCATE);
    if (f)
    {
+      printf("`test_newfile_block` opened %s.\n", filename);
+
       RND_ERROR err;
       int blocksize = 4096;
 
@@ -121,7 +151,7 @@ bool test_newfile_block(const char *filename)
       // Make sure handle is valid to pass assertions:
       make_bogus_head_file(&handle.head_file, blocksize);
 
-      RND_BLOCK_DEF rbd = { RBT_FILE, blocksize, 0, blocksize };
+      RND_BLOCK_DEF rbd = { RBT_FILE, blocksize, sizeof(Person), blocksize };
 
       err = blocks_append_block(&handle, &rbd);
       if (err)
@@ -135,10 +165,13 @@ bool test_newfile_block(const char *filename)
 
       fclose(f);
    }
+   else
+      fprintf(stderr, "`test_newfile_block` failed to opened %s (%s).\n", filename, strerror(errno));
 
    return rval;
 }
 
+/** */
 bool test_blocks_file_open(const char *filename)
 {
    RNDH handle;
@@ -174,11 +207,13 @@ bool test_blocks_file_use(const char *filename, rnd_user user)
    
 void simple_file_user(RNDH *handle, void *closure)
 {
-   printf("Opened the file, buster.\n");
+   printf("Callback `%s' callback for `test_blocks_file_user.`\n", __func__);
 }
 
 void add_block_file_user(RNDH *handle, void *closure)
 {
+   printf("Callback `%s' callback for `test_blocks_file_user.`\n", __func__);
+
    RND_BLOCK_DEF bdef = { RBT_DATA, 4096 };
    RND_ERROR rval = blocks_append_block(handle, &bdef);
    if (rval)
@@ -207,6 +242,8 @@ void add_block_file_user(RNDH *handle, void *closure)
 
 bool walk_block_user_callback(INFO_BLOCK *ib, off_t offset_to_ip, void *closure)
 {
+   printf("Callback `%s' callback for `test_blocks_file_user.`\n", __func__);
+
    printf("Block type is %u\n"
           "Block head size is %u\n"
           "Block size is %u\n"
@@ -222,6 +259,8 @@ bool walk_block_user_callback(INFO_BLOCK *ib, off_t offset_to_ip, void *closure)
 
 void walk_block_user(RNDH *handle, void *closure)
 {
+   printf("Callback `%s' callback for `test_blocks_file_user.`\n", __func__);
+
    chains_walk(handle, 0, walk_block_user_callback, closure);
 }
 
@@ -257,11 +296,14 @@ int main(int argc, const char **argv)
        && test_generic_block("basic2.db")
        && test_newfile_block(reusefile)                        // this will overwrite existing file
        && test_blocks_file_open(reusefile)                     // reuse file
+       && printf("\n[32;1mbegin series of calls to 'test_blocks_file_use`.[m\n")
        && test_blocks_file_use(reusefile, simple_file_user)    // reuse file to test reopening
+       && printf("\n[32;1mbegin series of calls, each adding a block to %s.[m\n", reusefile)
        && test_blocks_file_use(reusefile, add_block_file_user) // reuse file to add block
        && test_blocks_file_use(reusefile, add_block_file_user) // reuse file to add block
        && test_blocks_file_use(reusefile, add_block_file_user) // reuse file to add block
        && test_blocks_file_use(reusefile, add_block_file_user) // reuse file to add block
+       && printf("\n[32;1mWalking collection of blocks in %s.[m\n", reusefile)
        && test_blocks_file_use(reusefile, walk_block_user)     // reuse file to confirm block info
       )
    {
