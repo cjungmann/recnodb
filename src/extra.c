@@ -37,6 +37,7 @@ const char *rnd_error_strings[] = {
    "File Not Open",
    "Extinct Record",
    "Attempt to Orphan Block",
+   "Reached End of Block Chain",
    "Lock Failed",
    "Unlock Failed",
    "Lock Read Failed",
