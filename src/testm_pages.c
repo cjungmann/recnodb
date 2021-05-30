@@ -84,15 +84,16 @@ void simple_create_file_and_blocks(const char *name)
    f = fopen(name, "w+b");
    if (f)
    {
+      printf("`simple_create_file_and_blocks` opened file %s\n", name);
       handle.file = f;
 
-      report_file_stats(&handle);
+      Report_file_stats(&handle);
 
       RND_BHANDLE new_block, second_block;
 
       error = rnd_add_block(&handle, &new_block, 1, BT_GENERIC, NULL, NULL);
       if (error)
-         printf("There was an error with the first block: %s.\n", rnd_strerror(error, &handle));
+         fprintf(stderr, "There was an error with the first block: %s.\n", rnd_strerror(error, &handle));
       else
       {
 
@@ -100,7 +101,9 @@ void simple_create_file_and_blocks(const char *name)
          report_file_stats(&handle);
          error = rnd_add_block(&handle, &second_block, 1, BT_GENERIC, NULL, &new_block);
          if (error)
-            printf("There was an error with the second block: %s.\n", rnd_strerror(error, &handle));
+            fprintf(stderr,
+                    "There was an error with the second block: %s.\n",
+                    rnd_strerror(error, &handle));
          else
          {
             printf("\nSuccess with second block .\n");
@@ -110,6 +113,8 @@ void simple_create_file_and_blocks(const char *name)
 
       fclose(f);
    }
+   else
+      printf(stderr, "`simple_create_file_and_blocks` failed to open file %s (%s)\n", name, strerror(errno));
 }
 
 void recurse_read_blocks(RNDH *handle, RND_BHANDLE *bhandle)
@@ -133,6 +138,7 @@ void read_simple_file_blocks(const char *name)
    FILE *f = fopen(name, "r");
    if (f)
    {
+      printf("Opened database file %s.\n", name);
       // Prepare an incomplete handle for reading the file
       RNDH handle;
       rnd_init(&handle);
