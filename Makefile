@@ -67,10 +67,10 @@ ${TARGET}.so : ${MODULES}
 	@echo Suffix match build .e from .c file to build test executable
 	${CC} ${CFLAGS} -o $@ $<
 
-# .c.l: ${TARGET}.a
-# 	@echo Suffix match build .l from .c file to compile with library
-# 	@echo "Building library test file"
-# 	${CC} ${CFLAGS} -o $@ $< librecnodb.a
+.c.l:
+	@echo Suffix match build .l from .c file to compile with library
+	@echo "Building library test file"
+	${CC} ${CFLAGS} -o $@ $< ${TARGET}.a
 
 
 # %.o : %.c
@@ -81,9 +81,9 @@ ${TARGET}.so : ${MODULES}
 # 	@echo Pattern match build .e from .c file to build test executable
 # 	${CC} ${CFLAGS} -o $@ $<
 
-%.l : %.c
-	@echo Pattern match build .l from .c file to compile with library
-	${CC} ${CFLAGS} -o $@ $< librecnodb.a
+# %.l : %.c
+# 	@echo Pattern match build .l from .c file to compile with library
+# 	${CC} ${CFLAGS} -o $@ $< ${TARGET}.a
 
 # Other project rules:
 
