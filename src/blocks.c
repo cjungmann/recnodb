@@ -117,6 +117,15 @@ uint16_t blocks_bytes_to_data(uint16_t block_type)
 }
 
 /**
+ * Returns number of bytes that can be used for data (block-size - size-of-header)
+ */
+uint32_t blocks_block_payload_size(const INFO_BLOCK *block)
+{
+   return block->block_size - block->bytes_to_data;
+}
+
+
+/**
  * Simple error-checking, block-reading function.
  *
  * NOTE: This utility function assumes that the calling function will have
@@ -130,16 +139,59 @@ uint16_t blocks_bytes_to_data(uint16_t block_type)
  *
  * @return RND_SUCCESS if it works, RND_SYSTEM_ERROR and handle::sys_errno set on failure.
  **********************************************************************************/
-RND_ERROR blocks_read_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int block_len)
+RND_ERROR blocks_read_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int info_len)
 {
+   int bytes_to_read = sizeof(INFO_BLOCK);
+   if (bytes_to_read > info_len)
+      bytes_to_read = info_len;
+
    if (fseek(handle->file, offset, SEEK_SET)
-       || !fread(block, block_len, 1, handle->file))
+       || !fread(block, bytes_to_read, 1, handle->file))
    {
       handle->sys_errno = errno;
       return RND_SYSTEM_ERROR;
    }
    else
       return RND_SUCCESS;
+}
+
+/**
+ * Reads the next block head in a chain
+ *
+ * @param handle            handle to open recnodb database
+ * @param block             pointer to handle from which the search is made
+ * @param nextblock         [out] pointer to INFO_BLOCK struct into which the next
+ *                          block info will be read.
+ * @param nextblock_offset  [out] pointer to offset of `nextblock`
+ *
+ * @return RND_SUCCESS if the next block was found, an error message otherwise.
+ */
+RND_ERROR blocks_get_next_block_head(RNDH *handle,
+                                     const INFO_BLOCK *block,
+                                     INFO_BLOCK *nextblock,
+                                     off_t *nextblock_offset)
+{
+   RND_ERROR rval = RND_REACHED_END_OF_BLOCK_CHAIN;
+
+   if (block->next_block.offset)
+   {
+      // Save value before fread overwrites *block*
+      off_t saved_nextblock_offset = block->next_block.offset;
+
+      if (fseek(handle->file, block->next_block.offset, SEEK_SET)
+          || !fread(nextblock, sizeof(INFO_BLOCK), 1, handle->file))
+      {
+         handle->sys_errno = errno;
+         rval = RND_SYSTEM_ERROR;
+      }
+      else
+      {
+         *nextblock_offset = saved_nextblock_offset;
+         rval = RND_SUCCESS;
+      }
+   }
+
+   return rval;
 }
 
 /**
@@ -159,11 +211,11 @@ RND_ERROR blocks_read_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, 
  *
  * @return RND_SUCCESS if it works, RND_SYSTEM_ERROR and handle::sys_errno set on failure.
  **********************************************************************************/
-RND_ERROR blocks_write_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int block_len)
+RND_ERROR blocks_write_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int info_len)
 {
    int len_to_write = blocks_bytes_to_data(block->block_type);
-   if (len_to_write < block_len)
-      len_to_write = block_len;
+   if (len_to_write < info_len)
+      len_to_write = info_len;
    
    if (fseek(handle->file, offset, SEEK_SET)
        || !fwrite(block, len_to_write, 1, handle->file))

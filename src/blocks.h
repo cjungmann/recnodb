@@ -10,10 +10,10 @@
 
 typedef enum {
    RBT_UNDEFINED = 0,
-   RBT_GENERIC,      /**< Unspecified block type                           */
-   RBT_DATA,         /**< Block with free-form data                        */
-   RBT_TABLE,        /**< Block with fixed-length records                  */
-   RBT_FILE          /**< First block in file, includes INFO_TABLE members */
+   RBT_GENERIC,      /**< Unspecified block type                                */
+   RBT_DATA,         /**< Block with unspecified contents, determined by parent */
+   RBT_TABLE,        /**< Block with fixed-length records                       */
+   RBT_FILE          /**< First block in file, includes INFO_TABLE members      */
 } BTYPE;
 
 /*************************
@@ -44,8 +44,8 @@ struct rnd_info_chain {
 };
 
 struct rnd_info_table {
-   int32_t rec_size;         /**< Record size of this table          */
-   int32_t last_recno;       /**< Record number of last-added record */
+   uint32_t rec_size;         /**< Record size of this table          */
+   uint32_t last_recno;       /**< Record number of last-added record */
 };
 
 struct rnd_info_file {
@@ -88,8 +88,13 @@ RND_ERROR blocks_validate_head_file(const RND_HEAD_FILE *head_file);
 RND_ERROR blocks_validate_handle(const RNDH *handle);
 
 uint16_t blocks_bytes_to_data(uint16_t block_type);
-RND_ERROR blocks_read_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int block_len);
-RND_ERROR blocks_write_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int block_len);
+uint32_t blocks_block_payload_size(const INFO_BLOCK *block);
+RND_ERROR blocks_read_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int info_len);
+RND_ERROR blocks_write_block_head(RNDH *handle, off_t offset, INFO_BLOCK *block, int info_len);
+RND_ERROR blocks_get_next_block_head(RNDH *handle,
+                                     const INFO_BLOCK *block,
+                                     INFO_BLOCK *nextblock,
+                                     off_t *nextblock_offset);
 
 
 void blocks_set_info_block(INFO_BLOCK *ib,
